@@ -1,8 +1,41 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, Shield, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 export default function Index() {
+  const navigate = useNavigate();
+  const { user, isAdmin, isLoading } = useAuth();
+
+  // Redirect authenticated users to their dashboard
+  useEffect(() => {
+    if (!isLoading && user) {
+      // Redirect admin users to admin dashboard
+      if (isAdmin) {
+        navigate('/admin/dashboard');
+      } else {
+        // Redirect regular users to user dashboard
+        navigate('/dashboard');
+      }
+    }
+  }, [user, isAdmin, isLoading, navigate]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Users className="w-6 h-6 text-primary" />
+          </div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Only show landing page to non-authenticated users
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
