@@ -136,6 +136,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchIsAdmin = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .maybeSingle();
+    return !!data;
+  };
+
   useEffect(() => {
     // Initialize admin on app load
     initializeAdminUser();
@@ -143,45 +153,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        setIsLoading(true);
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
-          // Check if user is admin using setTimeout to avoid Supabase deadlock
-          setTimeout(async () => {
-            const { data } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id)
-              .eq('role', 'admin')
-              .maybeSingle();
-            setIsAdmin(!!data);
-          }, 0);
+          try {
+            const admin = await fetchIsAdmin(session.user.id);
+            setIsAdmin(admin);
+          } catch (e) {
+            console.error('Error checking admin role:', e);
+            setIsAdmin(false);
+          }
         } else {
           setIsAdmin(false);
         }
-        
+
         setIsLoading(false);
       }
     );
 
     // Then get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoading(true);
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .eq('role', 'admin')
-          .maybeSingle()
-          .then(({ data }) => {
-            setIsAdmin(!!data);
-            setIsLoading(false);
-          });
+        fetchIsAdmin(session.user.id)
+          .then((admin) => setIsAdmin(admin))
+          .catch((e) => {
+            console.error('Error checking admin role:', e);
+            setIsAdmin(false);
+          })
+          .finally(() => setIsLoading(false));
       } else {
+        setIsAdmin(false);
         setIsLoading(false);
       }
     });

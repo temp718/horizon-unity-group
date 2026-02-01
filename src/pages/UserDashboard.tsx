@@ -31,7 +31,7 @@ interface Profile {
 }
 
 export default function UserDashboard() {
-  const { user, signOut, isLoading: authLoading } = useAuth();
+  const { user, signOut, isAdmin, isLoading: authLoading } = useAuth();
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,9 +43,13 @@ export default function UserDashboard() {
     if (!authLoading && !user) {
       navigate('/login');
     } else if (user && !authLoading) {
+      if (isAdmin) {
+        navigate('/admin/dashboard', { replace: true });
+        return;
+      }
       fetchData();
     }
-  }, [user, authLoading, navigate]);
+  }, [user, isAdmin, authLoading, navigate]);
 
   const fetchData = async () => {
     // Fetch data from database

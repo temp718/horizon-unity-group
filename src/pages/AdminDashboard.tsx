@@ -58,12 +58,13 @@ export default function AdminDashboard() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        navigate('/login');
-      } else if (!isAdmin) {
-        navigate('/dashboard');
-      }
+    if (authLoading) return;
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (!isAdmin) {
+      navigate('/dashboard');
     }
   }, [user, isAdmin, authLoading, navigate]);
 
