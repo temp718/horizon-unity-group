@@ -11,7 +11,9 @@ import {
   Plus,
   CheckCircle2,
   Clock,
-  Wallet
+  Wallet,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +38,7 @@ export default function UserDashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [balanceVisible, setBalanceVisible] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -180,9 +183,24 @@ export default function UserDashboard() {
               <Users className="w-5 h-5 text-primary" />
               <span className="font-medium text-foreground">Horizon Unit</span>
             </div>
+            <button
+              onClick={() => setBalanceVisible(!balanceVisible)}
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+            >
+              {balanceVisible ? (
+                <Eye className="w-5 h-5 text-primary" />
+              ) : (
+                <EyeOff className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
           </div>
           <p className="stat-label mb-1">Your Total Savings</p>
-          <p className="balance-display">KES {totalContributions.toLocaleString()}</p>
+          {balanceVisible ? (
+            <p className="balance-display">KES {totalContributions.toLocaleString()}</p>
+          ) : (
+            <p className="balance-display text-muted-foreground">●●●●●●●●●●</p>
+          )}
+          <p className="text-xs text-muted-foreground mt-2">Click the eye icon to reveal/hide your balance.</p>
         </div>
 
         {/* Quick Actions */}
@@ -217,7 +235,11 @@ export default function UserDashboard() {
             </div>
             <div>
               <p className="stat-label">Total Saved</p>
-              <p className="text-2xl font-bold amount-positive">KES {thisMonthTotal.toLocaleString()}</p>
+              {balanceVisible ? (
+                <p className="text-2xl font-bold amount-positive">KES {thisMonthTotal.toLocaleString()}</p>
+              ) : (
+                <p className="text-2xl font-bold text-muted-foreground">●●●●●●●</p>
+              )}
             </div>
           </div>
         </div>

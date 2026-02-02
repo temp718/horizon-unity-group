@@ -11,7 +11,9 @@ import {
   LogOut,
   CheckCircle2,
   Clock,
-  UserPlus
+  UserPlus,
+  Eye,
+  Search
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +35,7 @@ interface Member {
   phone_number: string | null;
   total_contributions: number;
   contribution_count: number;
+  balance_visible: boolean;
 }
 
 interface Contribution {
@@ -54,6 +57,7 @@ export default function AdminDashboard() {
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -252,6 +256,17 @@ export default function AdminDashboard() {
               </DialogContent>
             </Dialog>
           </div>
+
+          {/* Search Box */}
+          <div className="mb-4 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search members by name or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
           
           {members.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">No members yet.</p>
@@ -267,8 +282,17 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {members.map((member) => (
-                    <tr key={member.id} className="border-b border-border last:border-0">
+                  {members
+                    .filter(m => 
+                      m.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      m.phone_number?.includes(searchQuery)
+                    )
+                    .map((member) => (
+                    <tr 
+                      key={member.id} 
+                      className="border-b border-border last:border-0 hover:bg-muted/50 cursor-pointer"
+                      onClick={() => navigate(`/admin/member/${member.user_id}`)}
+                    >
                       <td className="py-3 px-2">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -276,7 +300,15 @@ export default function AdminDashboard() {
                               {member.full_name?.charAt(0) || 'M'}
                             </span>
                           </div>
-                          <span className="font-medium">{member.full_name}</span>
+                          <div>
+                            <span className="font-medium">{member.full_name}</span>
+                            {!member.balance_visible && (
+                              <div className="inline-block ml-2 px-2 py-0.5 bg-muted text-xs rounded">
+                                <EyeOff className="w-3 h-3 inline mr-1" />
+                                Hidden
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="py-3 px-2 text-muted-foreground text-sm">
