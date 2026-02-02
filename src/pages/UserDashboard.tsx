@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { 
-  Users, 
   TrendingUp, 
   Calendar, 
   LogOut, 
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import logo from '@/assets/logo.png';
 
 interface Contribution {
   id: string;
@@ -177,7 +177,7 @@ export default function UserDashboard() {
         <div className="finance-card">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
+              <img src={logo} alt="Horizon Unit" className="w-6 h-6 object-contain" />
               <span className="font-medium text-foreground">Horizon Unit</span>
             </div>
           </div>

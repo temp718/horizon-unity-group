@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Phone, Lock, Users } from 'lucide-react';
+import { Loader2, Phone, Lock } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 export default function UserLogin() {
   const [credential, setCredential] = useState('');
@@ -91,9 +92,7 @@ export default function UserLogin() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-            <Users className="w-8 h-8 text-primary" />
-          </div>
+          <img src={logo} alt="Horizon Unit" className="w-16 h-16 object-contain mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-foreground">Horizon Unit</h1>
           <p className="text-muted-foreground mt-1">Login</p>
         </div>
