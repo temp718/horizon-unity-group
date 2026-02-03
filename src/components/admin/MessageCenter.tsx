@@ -31,6 +31,7 @@ import {
   Bell
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { sendAdminNotificationSMS } from '@/lib/sms';
 
 interface Message {
   id: string;
@@ -128,9 +129,28 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
 
         if (error) throw error;
 
+        // Send SMS to the user
+        const member = members.find(m => m.user_id === selectedUserId);
+        if (member) {
+          // Fetch user phone number from profiles
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('phone_number, sms_enabled')
+            .eq('user_id', selectedUserId)
+            .single();
+
+          if (profileData?.phone_number && profileData?.sms_enabled) {
+            await sendAdminNotificationSMS(
+              selectedUserId,
+              profileData.phone_number,
+              newMessage
+            );
+          }
+        }
+
         toast({
           title: 'Message sent',
-          description: 'Your message has been sent successfully.',
+          description: 'Your message has been sent successfully (and SMS sent if enabled).',
         });
       }
 
@@ -202,9 +222,26 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
 
       if (error) throw error;
 
+      // Send SMS to all members
+      const profilesResponse = await supabase
+        .from('profiles')
+        .select('user_id, phone_number, sms_enabled');
+
+      if (profilesResponse.data) {
+        for (const profile of profilesResponse.data) {
+          if (profile.phone_number && profile.sms_enabled) {
+            await sendAdminNotificationSMS(
+              profile.user_id,
+              profile.phone_number,
+              newMessage
+            );
+          }
+        }
+      }
+
       toast({
         title: 'Broadcast sent',
-        description: `Message sent to ${members.length} members.`,
+        description: `Message sent to ${members.length} members (with SMS where available).`,
       });
 
       setIsDialogOpen(false);

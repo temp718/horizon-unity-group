@@ -61,10 +61,14 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      // Fetch all profiles with their contribution totals
+      // Fetch all profiles and user roles
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('*');
+
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
 
       // Fetch all contributions
       const { data: contributionsData } = await supabase
@@ -72,8 +76,17 @@ export default function AdminDashboard() {
         .select('*')
         .order('contribution_date', { ascending: false });
 
-      if (profilesData && contributionsData) {
-        const membersWithStats = profilesData.map(profile => {
+      if (profilesData && contributionsData && rolesData) {
+        // Filter out admins from members list
+        const adminUserIds = rolesData
+          .filter(role => role.role === 'admin')
+          .map(role => role.user_id);
+
+        const regularMembers = profilesData.filter(
+          profile => !adminUserIds.includes(profile.user_id)
+        );
+
+        const membersWithStats = regularMembers.map(profile => {
           const memberContribs = contributionsData.filter(c => c.user_id === profile.user_id);
           return {
             ...profile,

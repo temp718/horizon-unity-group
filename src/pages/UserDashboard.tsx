@@ -15,8 +15,10 @@ import {
   MessageSquare,
   Bell,
   AlertCircle,
-  Info
+  Info,
+  Eye
 } from 'lucide-react';
+import { sendSuccessfulContributionSMS } from '@/lib/sms';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO, differenceInDays, startOfDay } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import logo from '@/assets/logo.png';
@@ -54,6 +56,7 @@ export default function UserDashboard() {
   const [messages, setMessages] = useState<AdminMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showMonthlyAmount, setShowMonthlyAmount] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -107,7 +110,7 @@ export default function UserDashboard() {
     const contributionDates = contributions.map(c => startOfDay(parseISO(c.contribution_date)));
     const earliestContrib = contributionDates[contributionDates.length - 1];
     
-    const totalDays = differenceInDays(today, earliestContrib) + 1;
+    const totalDays = differenceInDays(today, earliestContrib);
     const contributedDays = contributions.length;
     
     return Math.max(0, totalDays - contributedDays);
@@ -147,6 +150,17 @@ export default function UserDashboard() {
         });
 
       if (error) throw error;
+
+      // Send SMS notification
+      if (profile?.phone_number) {
+        const newBalance = (contributions.reduce((sum, c) => sum + Number(c.amount), 0) + contributionAmount) + (profile?.balance_adjustment || 0);
+        await sendSuccessfulContributionSMS(
+          user!.id,
+          profile.phone_number,
+          contributionAmount,
+          newBalance
+        );
+      }
 
       toast({
         title: 'Contribution added!',
@@ -351,7 +365,22 @@ export default function UserDashboard() {
             </div>
             <div>
               <p className="stat-label">Total Saved</p>
-              <p className="text-2xl font-bold amount-positive">KES {thisMonthTotal.toLocaleString()}</p>
+              <button
+                onClick={() => setShowMonthlyAmount(!showMonthlyAmount)}
+                className="flex items-center gap-2 text-2xl font-bold amount-positive hover:opacity-75 transition-opacity"
+              >
+                {showMonthlyAmount ? (
+                  <>
+                    <Eye className="w-5 h-5" />
+                    KES {thisMonthTotal.toLocaleString()}
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="w-5 h-5" />
+                    <span className="text-lg text-muted-foreground">Hidden</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
