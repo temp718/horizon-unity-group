@@ -1,11 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.33.0";
 
-// SMS provider config - using Twilio or similar
-const SMS_PROVIDER = Deno.env.get("SMS_PROVIDER") || "twilio";
-const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
-const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
-const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
+// TextLocal API Configuration
+const TEXTLOCAL_API_KEY = Deno.env.get("TEXTLOCAL_API_KEY") || "aky_39999NgB2tdhoSkk27QnUzSbQdO";
+const TEXTLOCAL_API_URL = "https://api.textlocal.in/send/";
 
 interface SMSPayload {
   phoneNumber: string;
@@ -14,37 +12,51 @@ interface SMSPayload {
   messageType: string;
 }
 
-const sendViaTwilio = async (
+const sendViaTextLocal = async (
   phoneNumber: string,
   message: string
 ): Promise<boolean> => {
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-    console.error("Twilio credentials not configured");
-    return false;
-  }
-
   try {
-    const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
-    const response = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${auth}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          From: TWILIO_PHONE_NUMBER,
-          To: phoneNumber,
-          Body: message,
-        }).toString(),
-      }
-    );
+    // Clean and format phone number
+    const cleanPhoneNumber = phoneNumber.replace(/\D/g, "");
+    if (!cleanPhoneNumber || cleanPhoneNumber.length < 10) {
+      console.error("Invalid phone number:", phoneNumber);
+      return false;
+    }
+
+    // Format for TextLocal (add country code if needed)
+    let formattedNumber = cleanPhoneNumber;
+    if (!formattedNumber.startsWith("91")) {
+      // Assuming Indian numbers
+      formattedNumber = "91" + cleanPhoneNumber.slice(-10);
+    }
+
+    // Create request body for TextLocal
+    const params = new URLSearchParams();
+    params.append("apikey", TEXTLOCAL_API_KEY);
+    params.append("numbers", formattedNumber);
+    params.append("message", message);
+    params.append("sender", "HORIZON");
+
+    const response = await fetch(TEXTLOCAL_API_URL, {
+      method: "POST",
+      body: params,
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
     const data = await response.json();
-    return response.ok && !!data.sid;
+
+    if (!response.ok || !data.success) {
+      console.error("TextLocal API Error:", data);
+      return false;
+    }
+
+    console.log("SMS sent successfully via TextLocal:", data);
+    return true;
   } catch (error) {
-    console.error("Twilio error:", error);
+    console.error("TextLocal error:", error);
     return false;
   }
 };
@@ -55,10 +67,8 @@ const sendViaSMSProvider = async (
   message: string
 ): Promise<boolean> => {
   try {
-    // You can implement any SMS provider API here
-    // For now, we'll use a mock implementation that logs to console
-    console.log(`SMS to ${phoneNumber}: ${message}`);
-    return true;
+    // Fallback to TextLocal if not already used
+    return await sendViaTextLocal(phoneNumber, message);
   } catch (error) {
     console.error("SMS provider error:", error);
     return false;
@@ -83,22 +93,8 @@ serve(async (req) => {
       );
     }
 
-    // Format phone number (basic validation)
-    const formattedPhone = phoneNumber.replace(/\D/g, "");
-    if (formattedPhone.length < 10) {
-      return new Response(
-        JSON.stringify({ error: "Invalid phone number" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Send SMS based on provider
-    let success = false;
-    if (SMS_PROVIDER === "twilio") {
-      success = await sendViaTwilio(`+${formattedPhone}`, message);
-    } else {
-      success = await sendViaSMSProvider(phoneNumber, message);
-    }
+    // Send SMS via TextLocal
+    const success = await sendViaTextLocal(phoneNumber, message);
 
     if (!success) {
       return new Response(

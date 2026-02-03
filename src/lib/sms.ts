@@ -7,19 +7,50 @@ export interface SMSPayload {
   messageType: 'missed_contribution' | 'successful_contribution' | 'admin_notification';
 }
 
+// TextLocal API Configuration
+const TEXTLOCAL_API_KEY = 'aky_39999NgB2tdhoSkk27QnUzSbQdO';
+const TEXTLOCAL_API_URL = 'https://api.textlocal.in/send/';
+
 export const sendSMS = async (payload: SMSPayload): Promise<boolean> => {
   try {
-    // Call Supabase Edge Function to send SMS
-    const { data, error } = await supabase.functions.invoke('send-sms', {
-      body: payload
-    });
-
-    if (error) {
-      console.error('SMS Error:', error);
+    // Ensure phone number is in valid format (remove any non-digits and ensure it's a valid length)
+    const cleanPhoneNumber = payload.phoneNumber.replace(/\D/g, '');
+    
+    if (!cleanPhoneNumber || cleanPhoneNumber.length < 10) {
+      console.error('Invalid phone number format:', payload.phoneNumber);
       return false;
     }
 
-    console.log('SMS sent successfully:', data);
+    // Format phone number for TextLocal (add country code if not present)
+    let formattedNumber = cleanPhoneNumber;
+    if (!formattedNumber.startsWith('91')) {
+      // Assuming Indian numbers - adjust as needed
+      formattedNumber = '91' + cleanPhoneNumber.slice(-10);
+    }
+
+    // Call TextLocal API to send SMS
+    const params = new URLSearchParams();
+    params.append('apikey', TEXTLOCAL_API_KEY);
+    params.append('numbers', formattedNumber);
+    params.append('message', payload.message);
+    params.append('sender', 'HORIZON'); // Sender ID
+
+    const response = await fetch(TEXTLOCAL_API_URL, {
+      method: 'POST',
+      body: params,
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      console.error('TextLocal API Error:', data);
+      return false;
+    }
+
+    console.log('SMS sent successfully via TextLocal:', data);
 
     // Log SMS record in database for tracking
     await supabase
@@ -30,11 +61,12 @@ export const sendSMS = async (payload: SMSPayload): Promise<boolean> => {
         message: payload.message,
         message_type: payload.messageType,
         status: 'sent'
-      });
+      })
+      .catch(err => console.error('Failed to log SMS:', err));
 
     return true;
   } catch (error) {
-    console.error('Failed to send SMS:', error);
+    console.error('Failed to send SMS via TextLocal:', error);
     return false;
   }
 };
