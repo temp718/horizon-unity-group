@@ -133,14 +133,14 @@ export default function UserLogin() {
             {/* Credential Input */}
             <div className="space-y-2">
               <Label htmlFor="credential" className="text-sm font-medium">
-                Phone Number or Email
+                Phone Number
               </Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="credential"
                   type="text"
-                  placeholder="0712345678 or admin@email.com"
+                  placeholder="0712345678"
                   value={credential}
                   onChange={(e) => {
                     setCredential(e.target.value);
@@ -159,9 +159,6 @@ export default function UserLogin() {
                   {errors.credential}
                 </div>
               )}
-              <p className="text-xs text-muted-foreground">
-                Members: Enter your phone number | Admins: Enter your email
-              </p>
             </div>
 
             {/* Password Input */}
