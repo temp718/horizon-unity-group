@@ -301,6 +301,7 @@ export default function UserRegister() {
           <p className="text-center text-xs text-muted-foreground mt-6">
             By creating an account, you agree to our Terms of Service
           </p>
+          </div>
         </div>
       </div>
     </>
