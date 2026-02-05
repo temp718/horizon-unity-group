@@ -1,31 +1,17 @@
-import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from '@/hooks/use-toast';
-import { 
-  Eye, 
-  EyeOff, 
-  Plus, 
-  Minus, 
-  Settings,
-  Users
-} from 'lucide-react';
+ import { useState } from 'react';
+ import { supabase } from '@/integrations/supabase/client';
+ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
+ import { Label } from '@/components/ui/label';
+ import {
+   Dialog,
+   DialogContent,
+   DialogDescription,
+   DialogHeader,
+   DialogTitle,
+ } from "@/components/ui/dialog";
+ import { useToast } from '@/hooks/use-toast';
+ import { Eye, EyeOff, Plus, Minus, Settings, Users, ChevronRight } from 'lucide-react';
 
 interface Member {
   id: string;
@@ -46,7 +32,8 @@ interface MemberManagementProps {
   adminId: string;
 }
 
-export default function MemberManagement({ members, onRefresh, adminId }: MemberManagementProps) {
+ 
+ export default function MemberManagement({ members, onRefresh, adminId }: MemberManagementProps) {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [adjustmentType, setAdjustmentType] = useState<'add' | 'deduct'>('add');
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
@@ -214,123 +201,74 @@ export default function MemberManagement({ members, onRefresh, adminId }: Member
   };
 
   return (
-    <div className="finance-card">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold flex items-center gap-2">
-          <Users className="w-5 h-5 text-primary" />
-          Member Management
-        </h3>
+    <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Users className="w-4 h-4 text-primary" />
+          </div>
+          <h3 className="font-semibold text-foreground">Member Management</h3>
+        </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={() => handleToggleAllVisibility(true)}>
-            <Eye className="w-4 h-4 mr-2" />
-            Show All
+          <Button size="sm" variant="outline" onClick={() => handleToggleAllVisibility(true)} className="rounded-lg">
+            <Eye className="w-4 h-4 mr-1" />
+            Show
           </Button>
-          <Button size="sm" variant="outline" onClick={() => handleToggleAllVisibility(false)}>
-            <EyeOff className="w-4 h-4 mr-2" />
-            Hide All
+          <Button size="sm" variant="outline" onClick={() => handleToggleAllVisibility(false)} className="rounded-lg">
+            <EyeOff className="w-4 h-4 mr-1" />
+            Hide
           </Button>
         </div>
       </div>
       
       {members.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">No members yet.</p>
+        <div className="text-center py-8">
+          <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+            <Users className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground text-sm">No members yet</p>
+        </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Member</th>
-                <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Phone</th>
-                <th className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Daily Target</th>
-                <th className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Total Saved</th>
-                <th className="text-center py-3 px-2 text-sm font-medium text-muted-foreground">Visible</th>
-                <th className="text-center py-3 px-2 text-sm font-medium text-muted-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((member) => {
-                const effectiveBalance = member.total_contributions + (member.balance_adjustment || 0);
-                return (
-                  <tr key={member.id} className="border-b border-border last:border-0">
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-xs font-medium text-primary">
-                            {member.full_name?.charAt(0) || 'M'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium block">{member.full_name}</span>
-                          {member.missed_contributions > 0 && (
-                            <span className="text-xs text-destructive">
-                              {member.missed_contributions} missed days
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 text-muted-foreground text-sm">
-                      {member.phone_number || '-'}
-                    </td>
-                    <td className="py-3 px-2 text-right text-sm">
-                      KES {member.daily_contribution_amount?.toLocaleString() || '100'}
-                    </td>
-                    <td className="py-3 px-2 text-right font-semibold amount-positive">
-                      KES {effectiveBalance.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-2 text-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleToggleVisibility(member)}
-                        title={member.balance_visible ? 'Hide balance' : 'Show balance'}
-                      >
-                        {member.balance_visible ? (
-                          <Eye className="w-4 h-4 text-primary" />
-                        ) : (
-                          <EyeOff className="w-4 h-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </td>
-                    <td className="py-3 px-2">
-                      <div className="flex items-center justify-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openAdjustDialog(member, 'add')}
-                          title="Add to balance"
-                        >
-                          <Plus className="w-4 h-4 text-primary" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openAdjustDialog(member, 'deduct')}
-                          title="Deduct from balance"
-                        >
-                          <Minus className="w-4 h-4 text-destructive" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openContribDialog(member)}
-                          title="Adjust contribution amount"
-                        >
-                          <Settings className="w-4 h-4 text-muted-foreground" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {members.map((member) => {
+            const effectiveBalance = member.total_contributions + (member.balance_adjustment || 0);
+            return (
+              <div key={member.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-primary/20 flex-shrink-0">
+                  <span className="text-primary font-bold">
+                    {member.full_name?.charAt(0) || 'M'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-foreground truncate">{member.full_name}</p>
+                    <button onClick={() => handleToggleVisibility(member)} className="p-1 rounded hover:bg-muted">
+                      {member.balance_visible ? <Eye className="w-3 h-3 text-primary" /> : <EyeOff className="w-3 h-3 text-muted-foreground" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{member.phone_number || 'No phone'}</p>
+                  <p className="text-sm font-bold text-primary mt-1">KES {effectiveBalance.toLocaleString()}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => openAdjustDialog(member, 'add')} className="rounded-full h-8 w-8">
+                    <Plus className="w-4 h-4 text-primary" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => openAdjustDialog(member, 'deduct')} className="rounded-full h-8 w-8">
+                    <Minus className="w-4 h-4 text-destructive" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => openContribDialog(member)} className="rounded-full h-8 w-8">
+                    <Settings className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* Balance Adjustment Dialog */}
       <Dialog open={isAdjustDialogOpen} onOpenChange={setIsAdjustDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>
               {adjustmentType === 'add' ? 'Add to' : 'Deduct from'} Balance
@@ -372,7 +310,7 @@ export default function MemberManagement({ members, onRefresh, adminId }: Member
 
       {/* Contribution Amount Dialog */}
       <Dialog open={isContribDialogOpen} onOpenChange={setIsContribDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>Adjust Daily Contribution</DialogTitle>
             <DialogDescription>

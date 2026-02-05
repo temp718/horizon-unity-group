@@ -1,37 +1,27 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from '@/hooks/use-toast';
-import { sendAdminNotificationSMS } from '@/lib/sms-reminders';
-import { 
-  MessageSquare, 
-  Send, 
-  Trash2, 
-  Edit2,
-  Plus,
-  AlertCircle,
-  Info,
-  Bell
-} from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+ import { useState, useEffect } from 'react';
+ import { supabase } from '@/integrations/supabase/client';
+ import { Button } from '@/components/ui/button';
+ import { Label } from '@/components/ui/label';
+ import { Textarea } from '@/components/ui/textarea';
+ import {
+   Dialog,
+   DialogContent,
+   DialogDescription,
+   DialogHeader,
+   DialogTitle,
+   DialogTrigger,
+ } from "@/components/ui/dialog";
+ import {
+   Select,
+   SelectContent,
+   SelectItem,
+   SelectTrigger,
+   SelectValue,
+ } from "@/components/ui/select";
+ import { useToast } from '@/hooks/use-toast';
+ import { sendAdminNotificationSMS } from '@/lib/sms-reminders';
+ import { MessageSquare, Send, Trash2, Edit2, Plus, AlertCircle, Info, Bell } from 'lucide-react';
+ import { format, parseISO } from 'date-fns';
 
 interface Message {
   id: string;
@@ -252,12 +242,14 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
   };
 
   return (
-    <div className="finance-card">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-primary" />
-          Message Center
-        </h3>
+    <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <MessageSquare className="w-4 h-4 text-primary" />
+          </div>
+          <h3 className="font-semibold text-foreground">Message Center</h3>
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) {
@@ -267,12 +259,12 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
           }
         }}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              New Message
+            <Button size="sm" className="rounded-xl">
+              <Plus className="w-4 h-4 mr-1" />
+              New
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md rounded-2xl">
             <DialogHeader>
               <DialogTitle>{editingMessage ? 'Edit Message' : 'Send Message'}</DialogTitle>
               <DialogDescription>
@@ -343,53 +335,47 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
       </div>
 
       {isLoading ? (
-        <p className="text-center text-muted-foreground py-8">Loading messages...</p>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Loading messages...</p>
+        </div>
       ) : messages.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">No messages yet.</p>
+        <div className="text-center py-8">
+          <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+            <MessageSquare className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground text-sm">No messages yet</p>
+          <p className="text-muted-foreground text-xs mt-1">Send your first message to members</p>
+        </div>
       ) : (
-        <div className="space-y-3 max-h-80 overflow-y-auto">
-          {messages.slice(0, 10).map((message) => (
+        <div className="space-y-2 max-h-80 overflow-y-auto">
+          {messages.slice(0, 8).map((message) => (
             <div 
               key={message.id} 
-              className={`flex items-start justify-between p-3 rounded-lg border ${
-                message.is_read ? 'border-border bg-muted/30' : 'border-primary/20 bg-primary/5'
+              className={`flex items-start gap-3 p-4 rounded-xl transition-colors ${
+                message.is_read ? 'bg-muted/30' : 'bg-primary/5 border border-primary/20'
               }`}
             >
-              <div className="flex items-start gap-3 flex-1">
-                <div className="mt-1">
-                  {getMessageIcon(message.message_type)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm">{message.recipient_name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {format(parseISO(message.created_at), 'MMM d, HH:mm')}
-                    </span>
-                    {!message.is_read && (
-                      <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
-                        Unread
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-foreground break-words">{message.message}</p>
-                </div>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                message.message_type === 'warning' ? 'bg-warning/10' : 'bg-primary/10'
+              }`}>
+                {getMessageIcon(message.message_type)}
               </div>
-              <div className="flex items-center gap-1 ml-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleEditMessage(message)}
-                  className="h-8 w-8"
-                >
-                  <Edit2 className="w-3 h-3" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium text-sm text-foreground">{message.recipient_name}</span>
+                  {!message.is_read && (
+                    <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">New</span>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground break-words line-clamp-2">{message.message}</p>
+                <p className="text-xs text-muted-foreground mt-1">{format(parseISO(message.created_at), 'MMM d, HH:mm')}</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Button variant="ghost" size="icon" onClick={() => handleEditMessage(message)} className="h-7 w-7 rounded-full">
+                  <Edit2 className="w-3.5 h-3.5" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDeleteMessage(message.id)}
-                  className="h-8 w-8 text-destructive"
-                >
-                  <Trash2 className="w-3 h-3" />
+                <Button variant="ghost" size="icon" onClick={() => handleDeleteMessage(message.id)} className="h-7 w-7 rounded-full text-destructive">
+                  <Trash2 className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </div>
