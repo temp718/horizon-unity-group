@@ -104,162 +104,165 @@
    }
  
    return (
-     <div className="min-h-screen bg-white">
+     <div className="min-h-screen bg-muted/30">
        {/* Header */}
-       <header className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md">
-         <div className="max-w-6xl mx-auto px-6 py-6">
-           <div className="flex items-center justify-between">
-             <div className="flex items-center gap-4">
-               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30 overflow-hidden">
-                 <img src={logo} alt="Horizon Unit" className="w-8 h-8 object-contain" />
+       <header className="bg-card px-4 py-5 rounded-b-3xl shadow-sm">
+         <div className="max-w-4xl mx-auto">
+           <div className="flex items-center justify-between mb-6">
+             <div className="flex items-center gap-3">
+               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-primary/20">
+                 <img src={logo} alt="Horizon Unit" className="w-7 h-7 object-contain" />
                </div>
                <div>
-                 <p className="text-sm font-medium text-blue-100">Admin Panel</p>
-                 <p className="font-bold text-lg">Horizon Unit</p>
+                 <p className="text-muted-foreground text-sm">Admin Panel</p>
+                 <p className="font-semibold text-foreground text-lg">Horizon Unit</p>
                </div>
              </div>
-             <div className="flex items-center gap-3">
-               <button className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200">
+             <div className="flex items-center gap-2">
+               <Button variant="ghost" size="icon" className="rounded-full">
                  <Bell className="w-5 h-5" />
-               </button>
-               <button onClick={handleSignOut} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200">
+               </Button>
+               <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-full">
                  <LogOut className="w-5 h-5" />
-               </button>
+               </Button>
+             </div>
+           </div>
+ 
+           {/* Balance Overview Card */}
+           <div className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-5 text-primary-foreground shadow-lg">
+             <div className="flex items-center justify-between mb-4">
+               <div className="flex items-center gap-2">
+                 <Sparkles className="w-5 h-5" />
+                 <span className="font-medium text-sm opacity-90">Total Group Savings</span>
+               </div>
+               <div className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium">
+                 {members.length} Members
+               </div>
+             </div>
+             
+             <p className="text-4xl font-bold tracking-tight">KES {totalGroupSavings.toLocaleString()}.00</p>
+ 
+             <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/20">
+               <div className="flex-1">
+                 <p className="text-xs opacity-70">This Month</p>
+                 <p className="text-lg font-semibold">KES {thisMonthTotal.toLocaleString()}</p>
+               </div>
+               <div className="flex-1">
+                 <p className="text-xs opacity-70">Contributions</p>
+                 <p className="text-lg font-semibold">{thisMonthContribs.length}</p>
+               </div>
              </div>
            </div>
          </div>
        </header>
-
-       <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-         {/* Key Metrics Row */}
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-           <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-             <div className="flex items-center justify-between mb-3">
-               <p className="text-sm text-gray-600 font-medium">Total Members</p>
-               <Users className="w-5 h-5 text-blue-600" />
-             </div>
-             <p className="text-3xl font-bold text-gray-900">{members.length}</p>
-             <p className="text-xs text-gray-500 mt-2">Active contributors</p>
+ 
+       <main className="max-w-4xl mx-auto px-4 py-6 space-y-5">
+         {/* Quick Actions Grid */}
+         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
+           <div className="flex items-center justify-between mb-4">
+             <h3 className="font-semibold text-foreground">Admin Actions</h3>
            </div>
-
-           <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-             <div className="flex items-center justify-between mb-3">
-               <p className="text-sm text-gray-600 font-medium">Total Balance</p>
-               <TrendingUp className="w-5 h-5 text-teal-600" />
-             </div>
-             <p className="text-3xl font-bold text-gray-900">KES {(totalGroupSavings / 1000).toFixed(1)}K</p>
-             <p className="text-xs text-gray-500 mt-2">Group savings</p>
-           </div>
-
-           <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-             <div className="flex items-center justify-between mb-3">
-               <p className="text-sm text-gray-600 font-medium">This Month</p>
-               <Calendar className="w-5 h-5 text-cyan-600" />
-             </div>
-             <p className="text-3xl font-bold text-gray-900">KES {(thisMonthTotal / 1000).toFixed(1)}K</p>
-             <p className="text-xs text-gray-500 mt-2">{thisMonthContribs.length} contributions</p>
-           </div>
-
-           <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-             <div className="flex items-center justify-between mb-3">
-               <p className="text-sm text-gray-600 font-medium">Per Member</p>
-               <Sparkles className="w-5 h-5 text-amber-600" />
-             </div>
-             <p className="text-3xl font-bold text-gray-900">KES {(members.length > 0 ? Math.round(totalGroupSavings / members.length) : 0).toLocaleString()}</p>
-             <p className="text-xs text-gray-500 mt-2">Average savings</p>
+           <div className="grid grid-cols-4 gap-4">
+             <button onClick={() => setActiveTab('members')} className="flex flex-col items-center gap-2 group">
+               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                 <Users className="w-6 h-6 text-primary" />
+               </div>
+               <span className="text-xs font-medium text-muted-foreground">Members</span>
+             </button>
+             <button onClick={() => setActiveTab('messages')} className="flex flex-col items-center gap-2 group">
+               <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center group-hover:bg-accent/80 transition-colors">
+                 <MessageSquare className="w-6 h-6 text-accent-foreground" />
+               </div>
+               <span className="text-xs font-medium text-muted-foreground">Messages</span>
+             </button>
+             <button onClick={() => setActiveTab('overview')} className="flex flex-col items-center gap-2 group">
+               <div className="w-14 h-14 rounded-2xl bg-info/10 flex items-center justify-center group-hover:bg-info/20 transition-colors">
+                 <BarChart3 className="w-6 h-6 text-info" />
+               </div>
+               <span className="text-xs font-medium text-muted-foreground">Reports</span>
+             </button>
+             <button className="flex flex-col items-center gap-2 group">
+               <div className="w-14 h-14 rounded-2xl bg-warning/10 flex items-center justify-center group-hover:bg-warning/20 transition-colors">
+                 <Settings className="w-6 h-6 text-warning" />
+               </div>
+               <span className="text-xs font-medium text-muted-foreground">Settings</span>
+             </button>
            </div>
          </div>
-
-         {/* Quick Actions */}
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-           <button 
-             onClick={() => setActiveTab('members')}
-             className="bg-white border border-gray-200 hover:border-blue-300 rounded-lg p-6 text-left transition-all hover:shadow-md group"
-           >
-             <div className="flex items-center justify-between mb-3">
-               <h3 className="font-bold text-gray-900">Manage Members</h3>
-               <Users className="w-5 h-5 text-blue-600 group-hover:translate-x-1 transition-transform" />
+ 
+         {/* Stats Cards */}
+         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+           <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+               <Users className="w-5 h-5 text-primary" />
              </div>
-             <p className="text-sm text-gray-600">{members.length} members in group</p>
-             <p className="text-xs text-gray-500 mt-2">Add, edit, or view member information</p>
-           </button>
-
-           <button 
-             onClick={() => setActiveTab('messages')}
-             className="bg-white border border-gray-200 hover:border-teal-300 rounded-lg p-6 text-left transition-all hover:shadow-md group"
-           >
-             <div className="flex items-center justify-between mb-3">
-               <h3 className="font-bold text-gray-900">Send Messages</h3>
-               <MessageSquare className="w-5 h-5 text-teal-600 group-hover:translate-x-1 transition-transform" />
+             <p className="text-2xl font-bold text-foreground">{members.length}</p>
+             <p className="text-xs text-muted-foreground mt-1">Active Members</p>
+           </div>
+           <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+             <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center mb-3">
+               <TrendingUp className="w-5 h-5 text-accent-foreground" />
              </div>
-             <p className="text-sm text-gray-600">Broadcast to all members</p>
-             <p className="text-xs text-gray-500 mt-2">Send important updates and announcements</p>
-           </button>
-
-           <button 
-             onClick={() => setActiveTab('overview')}
-             className="bg-white border border-gray-200 hover:border-cyan-300 rounded-lg p-6 text-left transition-all hover:shadow-md group"
-           >
-             <div className="flex items-center justify-between mb-3">
-               <h3 className="font-bold text-gray-900">View Reports</h3>
-               <BarChart3 className="w-5 h-5 text-cyan-600 group-hover:translate-x-1 transition-transform" />
+             <p className="text-2xl font-bold text-foreground">KES {(thisMonthTotal / 1000).toFixed(0)}K</p>
+             <p className="text-xs text-muted-foreground mt-1">This Month</p>
+           </div>
+           <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+             <div className="w-10 h-10 rounded-xl bg-info/10 flex items-center justify-center mb-3">
+               <Calendar className="w-5 h-5 text-info" />
              </div>
-             <p className="text-sm text-gray-600">Detailed analytics</p>
-             <p className="text-xs text-gray-500 mt-2">Track contributions and group performance</p>
-           </button>
+             <p className="text-2xl font-bold text-foreground">{thisMonthContribs.length}</p>
+             <p className="text-xs text-muted-foreground mt-1">Contributions</p>
+           </div>
+           <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+             <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center mb-3">
+               <Sparkles className="w-5 h-5 text-warning" />
+             </div>
+             <p className="text-2xl font-bold text-foreground">{format(new Date(), 'MMM')}</p>
+             <p className="text-xs text-muted-foreground mt-1">Current Period</p>
+           </div>
          </div>
-
+ 
          {/* Tab Navigation */}
-         <div className="bg-white border border-gray-200 rounded-lg p-2 flex gap-1">
+         <div className="flex gap-2 p-1 bg-muted rounded-xl">
            <button
              onClick={() => setActiveTab('overview')}
-             className={`flex-1 py-3 px-4 rounded-md text-sm font-semibold transition-all ${
-               activeTab === 'overview' 
-                 ? 'bg-blue-50 text-blue-900 border border-blue-200' 
-                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+             className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+               activeTab === 'overview' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
              }`}
            >
              Overview
            </button>
            <button
              onClick={() => setActiveTab('members')}
-             className={`flex-1 py-3 px-4 rounded-md text-sm font-semibold transition-all ${
-               activeTab === 'members' 
-                 ? 'bg-blue-50 text-blue-900 border border-blue-200' 
-                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+             className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+               activeTab === 'members' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
              }`}
            >
              Members
            </button>
            <button
              onClick={() => setActiveTab('messages')}
-             className={`flex-1 py-3 px-4 rounded-md text-sm font-semibold transition-all ${
-               activeTab === 'messages' 
-                 ? 'bg-blue-50 text-blue-900 border border-blue-200' 
-                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+             className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+               activeTab === 'messages' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
              }`}
            >
              Messages
            </button>
          </div>
-
+ 
          {/* Tab Content */}
          {activeTab === 'overview' && (
-           <div className="bg-white border border-gray-200 rounded-lg">
+           <div className="space-y-5">
              <RecentContributions contributions={recentContributions} />
            </div>
          )}
-
+ 
          {activeTab === 'members' && (
-           <div className="bg-white border border-gray-200 rounded-lg">
-             <MemberManagement members={members} onRefresh={fetchData} adminId={user!.id} />
-           </div>
+           <MemberManagement members={members} onRefresh={fetchData} adminId={user!.id} />
          )}
-
+ 
          {activeTab === 'messages' && (
-           <div className="bg-white border border-gray-200 rounded-lg">
-             <MessageCenter adminId={user!.id} members={members.map(m => ({ user_id: m.user_id, full_name: m.full_name }))} />
-           </div>
+           <MessageCenter adminId={user!.id} members={members.map(m => ({ user_id: m.user_id, full_name: m.full_name }))} />
          )}
        </main>
      </div>

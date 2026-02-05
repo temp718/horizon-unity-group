@@ -224,149 +224,196 @@
    }
  
    return (
-    <div className="min-h-screen bg-white">
+     <div className="min-h-screen bg-muted/30">
        {/* Header */}
-       <header className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md">
-         <div className="max-w-6xl mx-auto px-6 py-6">
-           <div className="flex items-center justify-between">
-             <div className="flex items-center gap-4">
-               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
-                 <span className="font-bold text-lg">
-                   {profile?.full_name?.charAt(0) || 'H'}
+       <header className="bg-card px-4 py-5 rounded-b-3xl shadow-sm">
+         <div className="max-w-lg mx-auto">
+           <div className="flex items-center justify-between mb-6">
+             <div className="flex items-center gap-3">
+               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-primary/20">
+                 <span className="text-primary font-bold text-lg">
+                   {profile?.full_name?.charAt(0) || 'M'}
                  </span>
                </div>
                <div>
-                 <p className="text-sm font-medium text-blue-100">Welcome back,</p>
-                 <p className="font-bold text-lg">{profile?.full_name || 'Member'}</p>
+                 <p className="text-muted-foreground text-sm">Hello,</p>
+                 <p className="font-semibold text-foreground text-lg">{profile?.full_name || 'Member'}</p>
                </div>
              </div>
-             <div className="flex items-center gap-3">
+             <div className="flex items-center gap-2">
                {unreadMessages.length > 0 && (
                  <div className="relative">
-                   <button className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200">
-                     <Bell className="w-5 h-5" />
-                   </button>
-                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-xs rounded-full flex items-center justify-center font-bold">
+                   <Bell className="w-5 h-5 text-muted-foreground" />
+                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
                      {unreadMessages.length}
                    </span>
                  </div>
                )}
-               <button onClick={handleSignOut} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200">
+               <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-full">
                  <LogOut className="w-5 h-5" />
+               </Button>
+             </div>
+           </div>
+ 
+           {/* Balance Card */}
+           <div className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-5 text-primary-foreground shadow-lg">
+             <div className="flex items-center justify-between mb-4">
+               <div className="flex items-center gap-2">
+                 <img src={logo} alt="Horizon Unit" className="w-6 h-6 object-contain brightness-0 invert" />
+                 <span className="font-medium text-sm opacity-90">Wallet Balance</span>
+               </div>
+               <button 
+                 onClick={() => profile?.balance_visible && setShowBalance(!showBalance)}
+                 className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+               >
+                 {showBalance && profile?.balance_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                </button>
+             </div>
+             
+             {profile?.balance_visible ? (
+               <p className="text-4xl font-bold tracking-tight">
+                 {showBalance ? `KES ${effectiveBalance.toLocaleString()}.00` : 'KES ******'}
+               </p>
+             ) : (
+               <div>
+                 <p className="text-2xl font-bold opacity-70">Balance Hidden</p>
+                 <p className="text-xs opacity-60 mt-1">Visible at end of cycle</p>
+               </div>
+             )}
+ 
+             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/20">
+               <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                 <Sparkles className="w-4 h-4" />
+               </div>
+               <div>
+                 <p className="text-xs opacity-70">Horizon Unit</p>
+                 <p className="text-sm font-medium">@{profile?.full_name?.toLowerCase().replace(/\s+/g, '') || 'member'}</p>
+               </div>
              </div>
            </div>
          </div>
        </header>
  
-<main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-         {/* Quick Stats Row */}
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-           <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-             <div className="flex items-center justify-between mb-3">
-               <p className="text-sm text-gray-600 font-medium">Contributions This Month</p>
-               <CheckCircle2 className="w-5 h-5 text-blue-600" />
-             </div>
-             <p className="text-3xl font-bold text-gray-900">{thisMonthContributions.length}</p>
-             <p className="text-xs text-gray-500 mt-2">KES {thisMonthContributions.reduce((sum, c) => sum + Number(c.amount), 0).toLocaleString()}</p>
-           </div>
-
-           <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-             <div className="flex items-center justify-between mb-3">
-               <p className="text-sm text-gray-600 font-medium">Daily Target</p>
-               <Wallet className="w-5 h-5 text-teal-600" />
-             </div>
-             <p className="text-3xl font-bold text-gray-900">KES {dailyAmount.toLocaleString()}</p>
-             <p className="text-xs text-gray-500 mt-2">Next contribution</p>
-           </div>
-
-           <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-             <div className="flex items-center justify-between mb-3">
-               <p className="text-sm text-gray-600 font-medium">Pending</p>
-               <Clock className="w-5 h-5 text-amber-600" />
-             </div>
-             <p className="text-3xl font-bold text-gray-900">{missedDays}</p>
-             <p className="text-xs text-gray-500 mt-2">Days to catch up</p>
-           </div>
-         </div>
-
+       <main className="max-w-lg mx-auto px-4 py-6 space-y-5">
          {/* Action Buttons */}
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           <button 
-             onClick={handleAddContribution}
-             className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-6 font-semibold flex items-center justify-center gap-2 transition-colors duration-200 shadow-sm hover:shadow-md"
-           >
-             <Plus className="w-5 h-5" />
-             Add Today's Contribution
-           </button>
-           <button 
-             className="bg-teal-100 hover:bg-teal-200 text-teal-900 rounded-lg p-6 font-semibold flex items-center justify-center gap-2 transition-colors duration-200"
-           >
-             <History className="w-5 h-5" />
-             View History ({contributions.length})
-           </button>
+         <div className="flex gap-3">
+           <Button onClick={handleAddContribution} className="flex-1 h-14 rounded-xl text-base font-semibold shadow-md hover:shadow-lg transition-all">
+             <Plus className="w-5 h-5 mr-2" />
+             Deposit
+           </Button>
+           <Button variant="outline" className="flex-1 h-14 rounded-xl text-base font-semibold border-2">
+             <History className="w-5 h-5 mr-2" />
+             History
+           </Button>
          </div>
-
+ 
          {/* Admin Messages */}
          {unreadMessages.length > 0 && (
-           <div className="space-y-3">
-             <h3 className="font-bold text-gray-900 text-lg">Messages from Admin</h3>
+           <div className="space-y-2">
              {unreadMessages.map(message => (
                <div 
                  key={message.id}
                  onClick={() => handleMarkMessageRead(message.id)}
-                 className={`bg-white border-l-4 rounded-lg p-5 cursor-pointer hover:shadow-md transition-all ${
-                   message.message_type === 'warning' 
-                     ? 'border-l-amber-500 bg-amber-50' 
-                     : 'border-l-blue-500 bg-blue-50'
+                 className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all hover:shadow-sm ${
+                   message.message_type === 'warning' ? 'border-warning/50 bg-warning/5' : 'border-primary/30 bg-primary/5'
                  }`}
                >
-                 <div className="flex items-start justify-between">
-                   <div className="flex items-start gap-3 flex-1">
-                     <div className={`p-2 rounded-lg ${
-                       message.message_type === 'warning' ? 'bg-amber-200' : 'bg-blue-200'
-                     }`}>
-                       {getMessageIcon(message.message_type)}
-                     </div>
-                     <div>
-                       <p className="font-semibold text-gray-900">{message.message}</p>
-                       <p className="text-xs text-gray-500 mt-1">{format(parseISO(message.created_at), 'MMM d, HH:mm')}</p>
-                     </div>
-                   </div>
-                   <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                   message.message_type === 'warning' ? 'bg-warning/10' : 'bg-primary/10'
+                 }`}>
+                   {getMessageIcon(message.message_type)}
+                 </div>
+                 <div className="flex-1">
+                   <p className="text-sm font-medium">{message.message}</p>
+                   <p className="text-xs text-muted-foreground mt-1">{format(parseISO(message.created_at), 'MMM d, HH:mm')}</p>
                  </div>
                </div>
              ))}
            </div>
          )}
-
+ 
+         {/* Quick Actions Grid */}
+         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
+           <div className="flex items-center justify-between mb-4">
+             <h3 className="font-semibold text-foreground">Quick Actions</h3>
+             <span className="text-xs text-muted-foreground">View</span>
+           </div>
+           <div className="grid grid-cols-4 gap-4">
+             <button onClick={handleAddContribution} className="flex flex-col items-center gap-2 group">
+               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                 <Plus className="w-6 h-6 text-primary" />
+               </div>
+               <span className="text-xs font-medium text-muted-foreground">Add Today</span>
+             </button>
+             <button className="flex flex-col items-center gap-2 group">
+               <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center group-hover:bg-accent/80 transition-colors">
+                 <Target className="w-6 h-6 text-accent-foreground" />
+               </div>
+               <span className="text-xs font-medium text-muted-foreground">Target</span>
+             </button>
+             <button className="flex flex-col items-center gap-2 group">
+               <div className="w-14 h-14 rounded-2xl bg-info/10 flex items-center justify-center group-hover:bg-info/20 transition-colors">
+                 <Calendar className="w-6 h-6 text-info" />
+               </div>
+               <span className="text-xs font-medium text-muted-foreground">Calendar</span>
+             </button>
+             <button className="flex flex-col items-center gap-2 group">
+               <div className="w-14 h-14 rounded-2xl bg-warning/10 flex items-center justify-center group-hover:bg-warning/20 transition-colors">
+                 <TrendingUp className="w-6 h-6 text-warning" />
+               </div>
+               <span className="text-xs font-medium text-muted-foreground">Progress</span>
+             </button>
+           </div>
+         </div>
+ 
          {/* Missed Days Alert */}
          {missedDays > 0 && (
-           <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 flex items-start gap-4">
-             <div className="p-2 rounded-lg bg-amber-200">
-               <AlertCircle className="w-5 h-5 text-amber-800" />
+           <div className="bg-info/10 border border-info/30 rounded-2xl p-4 flex items-center gap-4">
+             <div className="w-12 h-12 rounded-full bg-info/20 flex items-center justify-center flex-shrink-0">
+               <Info className="w-6 h-6 text-info" />
              </div>
-             <div>
-               <p className="font-semibold text-amber-900">Catch Up on Your Contributions</p>
-               <p className="text-sm text-amber-800 mt-1">You have <span className="font-bold">{missedDays}</span> day{missedDays > 1 ? 's' : ''} to catch up. Click past dates in the calendar to add them.</p>
+             <div className="flex-1">
+               <p className="font-semibold text-foreground">Catch Up</p>
+               <p className="text-sm text-muted-foreground">{missedDays} day{missedDays > 1 ? 's' : ''} pending</p>
              </div>
+             <ChevronRight className="w-5 h-5 text-muted-foreground" />
            </div>
          )}
-
-         {/* Calendar Section */}
-         <div className="bg-white border border-gray-200 rounded-lg p-6">
-           <div className="flex items-center justify-between mb-6">
-             <h3 className="font-bold text-lg text-gray-900">Contribution Calendar</h3>
-             <p className="text-sm text-gray-500">{format(currentMonth, 'MMMM yyyy')}</p>
+ 
+         {/* Monthly Stats */}
+         <div className="grid grid-cols-2 gap-3">
+           <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+               <CheckCircle2 className="w-5 h-5 text-primary" />
+             </div>
+             <p className="text-2xl font-bold text-foreground">{thisMonthContributions.length}</p>
+             <p className="text-xs text-muted-foreground mt-1">This Month</p>
            </div>
-           
-           <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold text-gray-600 mb-4">
-             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-               <div key={i} className="py-2">{day}</div>
+           <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+             <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center mb-3">
+               <Wallet className="w-5 h-5 text-accent-foreground" />
+             </div>
+             <p className="text-2xl font-bold text-foreground">KES {dailyAmount}</p>
+             <p className="text-xs text-muted-foreground mt-1">Daily Target</p>
+           </div>
+         </div>
+ 
+         {/* Calendar View */}
+         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
+           <div className="flex items-center justify-between mb-4">
+             <div className="flex items-center gap-2">
+               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                 <Calendar className="w-4 h-4 text-primary" />
+               </div>
+               <span className="font-semibold text-foreground">{format(currentMonth, 'MMMM yyyy')}</span>
+             </div>
+           </div>
+           <div className="grid grid-cols-7 gap-1.5 text-center text-xs mb-2">
+             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+               <div key={i} className="text-muted-foreground font-medium py-1">{day}</div>
              ))}
            </div>
-           
-           <div className="grid grid-cols-7 gap-2">
+           <div className="grid grid-cols-7 gap-1.5">
              {Array.from({ length: startOfMonth(currentMonth).getDay() }).map((_, i) => (
                <div key={`empty-${i}`} className="aspect-square" />
              ))}
@@ -379,14 +426,14 @@
                    key={day.toISOString()}
                    onClick={() => !contributed && !isFuture && setSelectedDate(day)}
                    disabled={isFuture}
-                   className={`aspect-square rounded-lg flex items-center justify-center text-sm font-bold transition-all ${
+                   className={`aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition-all ${
                      contributed 
-                       ? 'bg-blue-600 text-white shadow-sm' 
+                       ? 'bg-primary text-primary-foreground shadow-sm' 
                        : isToday 
-                         ? 'bg-teal-200 text-teal-900 border-2 border-teal-600 font-bold' 
+                         ? 'bg-accent text-accent-foreground ring-2 ring-primary ring-offset-1' 
                          : isFuture
-                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                           : 'bg-gray-50 text-gray-600 hover:bg-blue-100 hover:text-blue-900 cursor-pointer border border-gray-200'
+                           ? 'bg-muted/50 text-muted-foreground/50 cursor-not-allowed'
+                           : 'bg-muted/80 text-muted-foreground hover:bg-primary/10 hover:text-primary cursor-pointer'
                    }`}
                  >
                    {format(day, 'd')}
@@ -394,36 +441,37 @@
                );
              })}
            </div>
-           <p className="text-xs text-gray-500 mt-5 text-center font-medium">Click any past date to add contribution</p>
+           <p className="text-xs text-muted-foreground mt-4 text-center">Tap any past date to add contribution</p>
          </div>
-
+ 
          {/* Recent Activity */}
-         <div className="bg-white border border-gray-200 rounded-lg p-6">
-           <h3 className="font-bold text-lg text-gray-900 mb-5">Recent Activity</h3>
+         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
+           <div className="flex items-center justify-between mb-4">
+             <h3 className="font-semibold text-foreground">Recent Activity</h3>
+             <button className="text-xs text-primary font-medium">View All</button>
+           </div>
            {contributions.length === 0 ? (
-             <div className="text-center py-10">
-               <div className="w-14 h-14 rounded-full bg-gray-100 mx-auto mb-3 flex items-center justify-center">
-                 <Wallet className="w-6 h-6 text-gray-400" />
+             <div className="text-center py-8">
+               <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+                 <Wallet className="w-8 h-8 text-muted-foreground" />
                </div>
-               <p className="font-semibold text-gray-700">No contributions yet</p>
-               <p className="text-sm text-gray-500 mt-1">Start your savings journey today</p>
+               <p className="text-muted-foreground text-sm">No contributions yet</p>
+               <p className="text-muted-foreground text-xs mt-1">Start saving today!</p>
              </div>
            ) : (
              <div className="space-y-3">
-               {contributions.slice(0, 8).map((contribution) => (
-                 <div key={contribution.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
-                   <div className="flex items-center gap-3">
-                     <div className={`p-2 rounded-lg ${
-                       contribution.status === 'completed' ? 'bg-blue-100' : 'bg-amber-100'
-                     }`}>
-                       {contribution.status === 'completed' ? <CheckCircle2 className="w-4 h-4 text-blue-600" /> : <Clock className="w-4 h-4 text-amber-600" />}
-                     </div>
-                     <div>
-                       <p className="font-semibold text-gray-900 text-sm">{contribution.notes || 'Daily Contribution'}</p>
-                       <p className="text-xs text-gray-500">{format(parseISO(contribution.contribution_date), 'MMM d, yyyy')}</p>
-                     </div>
+               {contributions.slice(0, 3).map((contribution) => (
+                 <div key={contribution.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                     contribution.status === 'completed' ? 'bg-primary/10' : 'bg-warning/10'
+                   }`}>
+                     {contribution.status === 'completed' ? <CheckCircle2 className="w-5 h-5 text-primary" /> : <Clock className="w-5 h-5 text-warning" />}
                    </div>
-                   <span className="font-bold text-blue-600">+KES {Number(contribution.amount).toLocaleString()}</span>
+                   <div className="flex-1 min-w-0">
+                     <p className="font-medium text-sm text-foreground">{contribution.notes || 'Daily Contribution'}</p>
+                     <p className="text-xs text-muted-foreground">{format(parseISO(contribution.contribution_date), 'MMM d, yyyy')}</p>
+                   </div>
+                   <span className="font-bold text-primary">+KES {Number(contribution.amount).toLocaleString()}</span>
                  </div>
                ))}
              </div>
