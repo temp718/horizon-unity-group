@@ -1,17 +1,9 @@
- import { useState } from 'react';
- import { supabase } from '@/integrations/supabase/client';
- import { Button } from '@/components/ui/button';
- import { Input } from '@/components/ui/input';
- import { Label } from '@/components/ui/label';
- import {
-   Dialog,
-   DialogContent,
-   DialogDescription,
-   DialogHeader,
-   DialogTitle,
- } from "@/components/ui/dialog";
- import { useToast } from '@/hooks/use-toast';
- import { Eye, EyeOff, Plus, Minus, Settings, Users, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff, Plus, Minus, Settings, X } from 'lucide-react';
 
 interface Member {
   id: string;
@@ -32,8 +24,7 @@ interface MemberManagementProps {
   adminId: string;
 }
 
- 
- export default function MemberManagement({ members, onRefresh, adminId }: MemberManagementProps) {
+export default function MemberManagement({ members, onRefresh, adminId }: MemberManagementProps) {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [adjustmentType, setAdjustmentType] = useState<'add' | 'deduct'>('add');
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
@@ -60,11 +51,7 @@ interface MemberManagementProps {
       onRefresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update visibility';
-      toast({
-        title: 'Error',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     }
   };
 
@@ -84,11 +71,7 @@ interface MemberManagementProps {
       onRefresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update visibility';
-      toast({
-        title: 'Error',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     }
   };
 
@@ -102,7 +85,6 @@ interface MemberManagementProps {
         throw new Error('Please enter a valid amount');
       }
 
-      // Record the adjustment
       const { error: adjustError } = await supabase
         .from('balance_adjustments')
         .insert({
@@ -115,7 +97,6 @@ interface MemberManagementProps {
 
       if (adjustError) throw adjustError;
 
-      // Update profile balance_adjustment
       const currentAdjustment = selectedMember.balance_adjustment || 0;
       const newAdjustment = adjustmentType === 'add' 
         ? currentAdjustment + amount 
@@ -140,11 +121,7 @@ interface MemberManagementProps {
       onRefresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to adjust balance';
-      toast({
-        title: 'Error',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -178,11 +155,7 @@ interface MemberManagementProps {
       onRefresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update contribution amount';
-      toast({
-        title: 'Error',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -201,64 +174,79 @@ interface MemberManagementProps {
   };
 
   return (
-    <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Users className="w-4 h-4 text-primary" />
-          </div>
-          <h3 className="font-semibold text-foreground">Member Management</h3>
-        </div>
+    <>
+      {/* Header with visibility controls */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-600">All Members</h3>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={() => handleToggleAllVisibility(true)} className="rounded-lg">
-            <Eye className="w-4 h-4 mr-1" />
-            Show
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => handleToggleAllVisibility(false)} className="rounded-lg">
-            <EyeOff className="w-4 h-4 mr-1" />
-            Hide
-          </Button>
+          <button 
+            onClick={() => handleToggleAllVisibility(true)} 
+            className="px-4 py-2 bg-gray-100 rounded-full text-xs font-semibold text-gray-900 hover:bg-gray-200 transition active:scale-95 flex items-center gap-1"
+          >
+            <Eye className="w-3 h-3" /> Show All
+          </button>
+          <button 
+            onClick={() => handleToggleAllVisibility(false)} 
+            className="px-4 py-2 bg-gray-100 rounded-full text-xs font-semibold text-gray-900 hover:bg-gray-200 transition active:scale-95 flex items-center gap-1"
+          >
+            <EyeOff className="w-3 h-3" /> Hide All
+          </button>
         </div>
       </div>
-      
+
       {members.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-            <Users className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <p className="text-muted-foreground text-sm">No members yet</p>
+        <div className="text-center py-12">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No members yet</h3>
+          <p className="text-gray-500 max-w-sm mx-auto leading-relaxed">
+            When members join, they will appear here.
+          </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {members.map((member) => {
             const effectiveBalance = member.total_contributions + (member.balance_adjustment || 0);
             return (
-              <div key={member.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-primary/20 flex-shrink-0">
-                  <span className="text-primary font-bold">
-                    {member.full_name?.charAt(0) || 'M'}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-foreground truncate">{member.full_name}</p>
-                    <button onClick={() => handleToggleVisibility(member)} className="p-1 rounded hover:bg-muted">
-                      {member.balance_visible ? <Eye className="w-3 h-3 text-primary" /> : <EyeOff className="w-3 h-3 text-muted-foreground" />}
+              <div key={member.id} className="bg-gray-100 rounded-2xl p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center text-white font-bold">
+                    {member.full_name.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-gray-900 truncate">{member.full_name}</p>
+                      <button 
+                        onClick={() => handleToggleVisibility(member)} 
+                        className="p-1 rounded-full hover:bg-gray-200 transition"
+                      >
+                        {member.balance_visible 
+                          ? <Eye className="w-3.5 h-3.5 text-green-600" /> 
+                          : <EyeOff className="w-3.5 h-3.5 text-gray-400" />
+                        }
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-500">{member.phone_number || 'No phone'}</p>
+                    <p className="text-sm font-bold text-green-600 mt-1">KES {effectiveBalance.toLocaleString()}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button 
+                      onClick={() => openAdjustDialog(member, 'add')}
+                      className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm hover:bg-green-50 transition active:scale-95"
+                    >
+                      <Plus className="w-4 h-4 text-green-600" />
+                    </button>
+                    <button 
+                      onClick={() => openAdjustDialog(member, 'deduct')}
+                      className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm hover:bg-red-50 transition active:scale-95"
+                    >
+                      <Minus className="w-4 h-4 text-red-600" />
+                    </button>
+                    <button 
+                      onClick={() => openContribDialog(member)}
+                      className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm hover:bg-gray-50 transition active:scale-95"
+                    >
+                      <Settings className="w-4 h-4 text-gray-600" />
                     </button>
                   </div>
-                  <p className="text-xs text-muted-foreground">{member.phone_number || 'No phone'}</p>
-                  <p className="text-sm font-bold text-primary mt-1">KES {effectiveBalance.toLocaleString()}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => openAdjustDialog(member, 'add')} className="rounded-full h-8 w-8">
-                    <Plus className="w-4 h-4 text-primary" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => openAdjustDialog(member, 'deduct')} className="rounded-full h-8 w-8">
-                    <Minus className="w-4 h-4 text-destructive" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => openContribDialog(member)} className="rounded-full h-8 w-8">
-                    <Settings className="w-4 h-4 text-muted-foreground" />
-                  </Button>
                 </div>
               </div>
             );
@@ -266,78 +254,119 @@ interface MemberManagementProps {
         </div>
       )}
 
-      {/* Balance Adjustment Dialog */}
-      <Dialog open={isAdjustDialogOpen} onOpenChange={setIsAdjustDialogOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {adjustmentType === 'add' ? 'Add to' : 'Deduct from'} Balance
-            </DialogTitle>
-            <DialogDescription>
+      {/* Balance Adjustment Modal */}
+      {isAdjustDialogOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-bold text-xl text-gray-900">
+                {adjustmentType === 'add' ? 'Add to Balance' : 'Deduct from Balance'}
+              </h3>
+              <button 
+                onClick={() => setIsAdjustDialogOpen(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition"
+              >
+                <X className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+            <p className="text-gray-500 text-sm mb-6">
               {adjustmentType === 'add' ? 'Add funds to' : 'Deduct funds from'} {selectedMember?.full_name}'s account
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="adjustAmount">Amount (KES)</Label>
-              <Input
-                id="adjustAmount"
-                type="number"
-                placeholder="Enter amount"
-                value={adjustmentAmount}
-                onChange={(e) => setAdjustmentAmount(e.target.value)}
-              />
+            </p>
+            <div className="space-y-4 mb-6">
+              <div className="space-y-2">
+                <Label htmlFor="adjustAmount" className="text-sm font-medium text-gray-700">Amount (KES)</Label>
+                <Input
+                  id="adjustAmount"
+                  type="number"
+                  placeholder="Enter amount"
+                  value={adjustmentAmount}
+                  onChange={(e) => setAdjustmentAmount(e.target.value)}
+                  className="rounded-xl border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="adjustReason" className="text-sm font-medium text-gray-700">Reason (optional)</Label>
+                <Input
+                  id="adjustReason"
+                  placeholder="Enter reason for adjustment"
+                  value={adjustmentReason}
+                  onChange={(e) => setAdjustmentReason(e.target.value)}
+                  className="rounded-xl border-gray-200"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="adjustReason">Reason (optional)</Label>
-              <Input
-                id="adjustReason"
-                placeholder="Enter reason for adjustment"
-                value={adjustmentReason}
-                onChange={(e) => setAdjustmentReason(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => setIsAdjustDialogOpen(false)} 
+                className="py-4 px-6 bg-gray-100 rounded-full font-semibold text-gray-900 hover:bg-gray-200 transition active:scale-95"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleBalanceAdjustment}
+                disabled={isLoading || !adjustmentAmount}
+                className={`py-4 px-6 rounded-full font-semibold text-white transition shadow-lg active:scale-95 ${
+                  adjustmentType === 'add' 
+                    ? 'bg-gradient-to-r from-green-500 to-green-600 shadow-green-500/30 hover:from-green-600 hover:to-green-700' 
+                    : 'bg-gradient-to-r from-red-500 to-red-600 shadow-red-500/30 hover:from-red-600 hover:to-red-700'
+                } disabled:opacity-50`}
+              >
+                {isLoading ? 'Processing...' : adjustmentType === 'add' ? 'Add' : 'Deduct'}
+              </button>
             </div>
-            <Button 
-              onClick={handleBalanceAdjustment} 
-              disabled={isLoading || !adjustmentAmount} 
-              className="w-full"
-            >
-              {isLoading ? 'Processing...' : `${adjustmentType === 'add' ? 'Add' : 'Deduct'} Amount`}
-            </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
-      {/* Contribution Amount Dialog */}
-      <Dialog open={isContribDialogOpen} onOpenChange={setIsContribDialogOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Adjust Daily Contribution</DialogTitle>
-            <DialogDescription>
-              Set the daily contribution target for {selectedMember?.full_name}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="dailyAmount">Daily Amount (KES)</Label>
-              <Input
-                id="dailyAmount"
-                type="number"
-                placeholder="Enter daily amount"
-                value={newDailyAmount}
-                onChange={(e) => setNewDailyAmount(e.target.value)}
-              />
+      {/* Contribution Amount Modal */}
+      {isContribDialogOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-bold text-xl text-gray-900">Daily Contribution</h3>
+              <button 
+                onClick={() => setIsContribDialogOpen(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition"
+              >
+                <X className="w-4 h-4 text-gray-600" />
+              </button>
             </div>
-            <Button 
-              onClick={handleContributionAmountChange} 
-              disabled={isLoading || !newDailyAmount} 
-              className="w-full"
-            >
-              {isLoading ? 'Updating...' : 'Update Daily Amount'}
-            </Button>
+            <p className="text-gray-500 text-sm mb-6">
+              Set the daily contribution target for {selectedMember?.full_name}
+            </p>
+            <div className="space-y-4 mb-6">
+              <div className="space-y-2">
+                <Label htmlFor="dailyAmount" className="text-sm font-medium text-gray-700">Daily Amount (KES)</Label>
+                <Input
+                  id="dailyAmount"
+                  type="number"
+                  placeholder="Enter daily amount"
+                  value={newDailyAmount}
+                  onChange={(e) => setNewDailyAmount(e.target.value)}
+                  className="rounded-xl border-gray-200"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => setIsContribDialogOpen(false)} 
+                className="py-4 px-6 bg-gray-100 rounded-full font-semibold text-gray-900 hover:bg-gray-200 transition active:scale-95"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleContributionAmountChange}
+                disabled={isLoading || !newDailyAmount}
+                className="py-4 px-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full font-semibold text-white hover:from-blue-600 hover:to-blue-700 transition shadow-lg shadow-blue-500/30 active:scale-95 disabled:opacity-50"
+              >
+                {isLoading ? 'Updating...' : 'Update'}
+              </button>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+        </div>
+      )}
+    </>
   );
 }

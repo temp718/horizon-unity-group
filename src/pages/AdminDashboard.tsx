@@ -2,13 +2,20 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
-import { LogOut, Users, TrendingUp, Calendar, MessageSquare, Bell } from 'lucide-react';
-import { startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { 
+  LogOut, 
+  Users, 
+  TrendingUp, 
+  MessageSquare, 
+  Settings,
+  ChevronRight,
+  Search,
+  X
+} from 'lucide-react';
+import { startOfMonth, endOfMonth, parseISO, format } from 'date-fns';
 import logo from '@/assets/logo.png';
-import StatsOverview from '@/components/admin/StatsOverview';
 import MemberManagement from '@/components/admin/MemberManagement';
 import MessageCenter from '@/components/admin/MessageCenter';
-import RecentContributions from '@/components/admin/RecentContributions';
 
 interface Member {
   id: string;
@@ -38,6 +45,7 @@ export default function AdminDashboard() {
   const [recentContributions, setRecentContributions] = useState<Contribution[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'messages'>('overview');
+  const [showStatsCard, setShowStatsCard] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -96,173 +104,241 @@ export default function AdminDashboard() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse text-gray-400">Loading...</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      {/* Mobile Container */}
       <div className="w-full max-w-md bg-white min-h-screen shadow-2xl rounded-3xl overflow-hidden flex flex-col">
         
-        {/* Drag Handle - Premium mobile feel */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-12 h-1 bg-gray-200 rounded-full"></div>
-        </div>
-
         {/* Header */}
-        <div className="bg-white px-4 py-4 flex items-center justify-between border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg">
-              <img src={logo} alt="Horizon Unit" className="w-8 h-8 object-contain" />
+        <div className="bg-white px-4 py-4 flex items-center justify-between border-b border-gray-100">
+          {/* Profile Avatar */}
+          <div className="relative">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+              <img src={logo} alt="Admin" className="w-8 h-8 object-contain" />
             </div>
-            <div>
-              <p className="text-gray-600 text-xs font-bold uppercase">Admin</p>
-              <p className="font-bold text-gray-900 text-sm">Horizon Unit</p>
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white flex items-center justify-center">
+              <div className="w-2 h-2 bg-white rounded-full"></div>
             </div>
           </div>
+
+          {/* Action Buttons */}
           <div className="flex items-center gap-2">
-            <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition active:scale-95">
-              <Bell className="w-5 h-5 text-gray-600" />
+            <button className="px-5 py-2.5 bg-gray-100 rounded-full text-sm font-medium text-gray-900 hover:bg-gray-200 transition">
+              Admin
             </button>
-            <button onClick={handleSignOut} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition active:scale-95">
+            <button 
+              onClick={handleSignOut}
+              className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition"
+            >
               <LogOut className="w-5 h-5 text-gray-600" />
             </button>
           </div>
         </div>
 
-        {/* Main Content Scrollable */}
+        {/* Main Content - Scrollable */}
         <div className="flex-1 overflow-y-auto">
-          <div className="px-4 pt-6 pb-4 space-y-5">
-            {/* Hero Stats Section */}
-            <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-3xl p-6 text-white shadow-xl border border-blue-500/20">
-              <div className="flex items-start justify-between mb-4">
+          {/* Balance Card */}
+          <div className="px-4 pt-6 pb-4">
+            <div className="bg-gray-100 rounded-3xl p-6">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs opacity-75 font-semibold uppercase mb-1">Total Assets</p>
-                  <p className="text-5xl font-bold tracking-tight">KES {totalGroupSavings.toLocaleString()}</p>
+                  <h2 className="text-4xl font-bold text-gray-900 mb-1">Horizon</h2>
+                  <p className="text-2xl text-gray-400 font-medium">KES {totalGroupSavings.toLocaleString()}</p>
                 </div>
-                <span className="text-xs bg-white/20 backdrop-blur px-3 py-1.5 rounded-full font-semibold">{members.length} Members</span>
-              </div>
-              <div className="mt-6 pt-6 border-t border-white/20 grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs opacity-75 font-semibold">This Month</p>
-                  <p className="text-2xl font-bold mt-1">KES {thisMonthTotal.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-xs opacity-75 font-semibold">Contributions</p>
-                  <p className="text-2xl font-bold mt-1">{thisMonthContribs.length}</p>
-                </div>
+                <button className="p-2 hover:bg-gray-200 rounded-lg transition">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="5" r="1.5" fill="currentColor"/>
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                    <circle cx="12" cy="19" r="1.5" fill="currentColor"/>
+                  </svg>
+                </button>
               </div>
             </div>
+          </div>
 
-            {/* Quick Actions Grid */}
+          {/* Action Buttons Grid */}
+          <div className="px-4 pb-6">
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => setActiveTab('members')} className="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:from-blue-100 hover:to-blue-50 transition active:scale-95 border border-blue-100 shadow-sm">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-600" />
+              <button 
+                onClick={() => setActiveTab('members')}
+                className="bg-gray-100 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:bg-gray-200 transition active:scale-95"
+              >
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                  <Users className="w-6 h-6 text-gray-900" />
                 </div>
-                <span className="text-xs font-bold text-gray-900 uppercase">Members</span>
+                <span className="text-base font-semibold text-gray-900">Members</span>
               </button>
-              <button onClick={() => setActiveTab('messages')} className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:from-green-100 hover:to-green-50 transition active:scale-95 border border-green-100 shadow-sm">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5 text-green-600" />
+              
+              <button 
+                onClick={() => setActiveTab('messages')}
+                className="bg-gray-100 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:bg-gray-200 transition active:scale-95"
+              >
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                  <MessageSquare className="w-6 h-6 text-gray-900" />
                 </div>
-                <span className="text-xs font-bold text-gray-900 uppercase">Messages</span>
+                <span className="text-base font-semibold text-gray-900">Messages</span>
               </button>
             </div>
+          </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-4 border border-blue-100 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-gray-600 font-bold uppercase">Members</span>
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Users className="w-3 h-3 text-blue-600" />
+          {/* Stats Card */}
+          {showStatsCard && (
+            <div className="px-4 pb-6">
+              <div className="bg-gradient-to-br from-emerald-50 to-green-100 rounded-3xl p-6 relative overflow-hidden">
+                <button 
+                  className="absolute top-4 right-4 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition"
+                  onClick={() => setShowStatsCard(false)}
+                >
+                  <X className="w-4 h-4 text-gray-600" />
+                </button>
+                
+                {/* Stats Icons */}
+                <div className="flex gap-2 mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-300 to-green-400 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6">
+                    <span className="text-2xl font-bold text-white">{members.length}</span>
+                  </div>
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-300 to-green-400 rounded-2xl flex items-center justify-center shadow-lg transform rotate-6">
+                    <TrendingUp className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-300 to-green-400 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3">
+                    <Users className="w-8 h-8 text-white" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{members.length}</p>
-                <p className="text-xs text-gray-600 mt-1 font-medium">Active in group</p>
-              </div>
-              <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-4 border border-green-100 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-gray-600 font-bold uppercase">This Month</span>
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                    <TrendingUp className="w-3 h-3 text-green-600" />
-                  </div>
+
+                {/* Text */}
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-bold text-gray-900">This month,</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">KES {thisMonthTotal.toLocaleString()} collected.</h3>
+                  <p className="text-xl font-semibold text-gray-900">{thisMonthContribs.length} contributions</p>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">KES {(thisMonthTotal / 1000).toFixed(0)}K</p>
-                <p className="text-xs text-gray-600 mt-1 font-medium">Total collected</p>
-              </div>
-              <div className="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-4 border border-purple-100 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-gray-600 font-bold uppercase">Contributions</span>
-                  <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Calendar className="w-3 h-3 text-purple-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-gray-900">{thisMonthContribs.length}</p>
-                <p className="text-xs text-gray-600 mt-1 font-medium">This period</p>
-              </div>
-              <div className="bg-gradient-to-br from-orange-50 to-white rounded-2xl p-4 border border-orange-100 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-gray-600 font-bold uppercase">Per Member</span>
-                  <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center">
-                    <TrendingUp className="w-3 h-3 text-orange-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-gray-900">KES {members.length > 0 ? (thisMonthTotal / members.length).toFixed(0) : 0}</p>
-                <p className="text-xs text-gray-600 mt-1 font-medium">Average amount</p>
               </div>
             </div>
+          )}
 
-            {/* Tab Navigation */}
-            <div className="flex gap-2 bg-gray-100 p-1 rounded-full sticky top-0 z-10 shadow-sm">
-              <button
+          {/* Tab Content Based on Active Tab */}
+          {activeTab === 'overview' && (
+            <>
+              {/* Today Section - Recent Activity */}
+              <div className="px-4 pb-4">
+                <h3 className="text-lg font-semibold text-gray-600 mb-4">Recent Activity</h3>
+                
+                {recentContributions.length === 0 ? (
+                  <div className="text-center py-12">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Activity feed</h3>
+                    <p className="text-gray-500 max-w-sm mx-auto leading-relaxed">
+                      When members add contributions, they show up here.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentContributions.slice(0, 8).map((contribution) => (
+                      <div key={contribution.id} className="bg-gray-100 rounded-2xl p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center text-white font-bold">
+                            {contribution.profiles?.full_name?.substring(0, 2).toUpperCase() || '??'}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900">{contribution.profiles?.full_name || 'Unknown'}</p>
+                            <p className="text-sm text-gray-500">{format(parseISO(contribution.contribution_date), 'MMM d, yyyy')}</p>
+                          </div>
+                          <span className="font-bold text-green-600">+KES {Number(contribution.amount).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Member Summary */}
+              <div className="px-4 pb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-600">Members</h3>
+                  <button 
+                    onClick={() => setActiveTab('members')}
+                    className="text-sm font-medium text-blue-600 flex items-center gap-1 hover:text-blue-700"
+                  >
+                    View all <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  {members.slice(0, 4).map((member) => (
+                    <div key={member.id} className="bg-gray-100 rounded-2xl p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center text-white font-bold">
+                          {member.full_name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900">{member.full_name}</p>
+                          <p className="text-sm text-gray-500">{member.contribution_count} contributions</p>
+                        </div>
+                        <span className="font-bold text-gray-900">KES {(member.total_contributions + (member.balance_adjustment || 0)).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {activeTab === 'members' && (
+            <div className="px-4 pb-6">
+              <MemberManagement members={members} onRefresh={fetchData} adminId={user!.id} />
+            </div>
+          )}
+
+          {activeTab === 'messages' && (
+            <div className="px-4 pb-6">
+              <MessageCenter adminId={user!.id} members={members.map(m => ({ user_id: m.user_id, full_name: m.full_name }))} />
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Navigation */}
+        <div className="bg-white border-t border-gray-200">
+          <div className="px-4 py-3">
+            <p className="text-center text-sm text-gray-600 mb-3">
+              Manage <span className="font-semibold">{members.length} members</span> and{' '}
+              <span className="font-semibold">KES {totalGroupSavings.toLocaleString()}</span> in savings.
+            </p>
+            
+            <div className="grid grid-cols-3 gap-2 pb-2">
+              <button 
                 onClick={() => setActiveTab('overview')}
-                className={`flex-1 py-2 px-4 rounded-full text-xs font-bold uppercase transition-all ${
+                className={`py-3 px-4 rounded-full text-sm font-semibold transition active:scale-95 ${
                   activeTab === 'overview' 
-                    ? 'bg-white text-gray-900 shadow-md' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30' 
+                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                 }`}
               >
                 Overview
               </button>
-              <button
+              <button 
                 onClick={() => setActiveTab('members')}
-                className={`flex-1 py-2 px-4 rounded-full text-xs font-bold uppercase transition-all ${
+                className={`py-3 px-4 rounded-full text-sm font-semibold transition active:scale-95 ${
                   activeTab === 'members' 
-                    ? 'bg-white text-gray-900 shadow-md' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30' 
+                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                 }`}
               >
                 Members
               </button>
-              <button
+              <button 
                 onClick={() => setActiveTab('messages')}
-                className={`flex-1 py-2 px-4 rounded-full text-xs font-bold uppercase transition-all ${
+                className={`py-3 px-4 rounded-full text-sm font-semibold transition active:scale-95 ${
                   activeTab === 'messages' 
-                    ? 'bg-white text-gray-900 shadow-md' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30' 
+                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                 }`}
               >
                 Messages
               </button>
-            </div>
-
-            {/* Tab Content */}
-            <div className="space-y-3">
-              {activeTab === 'overview' && (
-                <RecentContributions contributions={recentContributions} />
-              )}
-
-              {activeTab === 'members' && (
-                <MemberManagement members={members} onRefresh={fetchData} adminId={user!.id} />
-              )}
-
-              {activeTab === 'messages' && (
-                <MessageCenter adminId={user!.id} members={members.map(m => ({ user_id: m.user_id, full_name: m.full_name }))} />
-              )}
             </div>
           </div>
         </div>

@@ -1,27 +1,18 @@
- import { useState, useEffect } from 'react';
- import { supabase } from '@/integrations/supabase/client';
- import { Button } from '@/components/ui/button';
- import { Label } from '@/components/ui/label';
- import { Textarea } from '@/components/ui/textarea';
- import {
-   Dialog,
-   DialogContent,
-   DialogDescription,
-   DialogHeader,
-   DialogTitle,
-   DialogTrigger,
- } from "@/components/ui/dialog";
- import {
-   Select,
-   SelectContent,
-   SelectItem,
-   SelectTrigger,
-   SelectValue,
- } from "@/components/ui/select";
- import { useToast } from '@/hooks/use-toast';
- import { sendAdminNotificationSMS } from '@/lib/sms-reminders';
- import { MessageSquare, Send, Trash2, Edit2, Plus, AlertCircle, Info, Bell } from 'lucide-react';
- import { format, parseISO } from 'date-fns';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from '@/hooks/use-toast';
+import { sendAdminNotificationSMS } from '@/lib/sms-reminders';
+import { Send, Trash2, Edit2, Plus, AlertCircle, Info, Bell, X } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 
 interface Message {
   id: string;
@@ -68,13 +59,9 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
 
       if (error) throw error;
 
-      // Add recipient names
       const messagesWithNames = data?.map(msg => {
         const member = members.find(m => m.user_id === msg.user_id);
-        return {
-          ...msg,
-          recipient_name: member?.full_name || 'Unknown'
-        };
+        return { ...msg, recipient_name: member?.full_name || 'Unknown' };
       }) || [];
 
       setMessages(messagesWithNames);
@@ -91,35 +78,20 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
     setIsSending(true);
     try {
       if (editingMessage) {
-        // Update existing message
         const { error } = await supabase
           .from('admin_messages')
-          .update({
-            message: newMessage,
-            message_type: messageType,
-          })
+          .update({ message: newMessage, message_type: messageType })
           .eq('id', editingMessage.id);
 
         if (error) throw error;
-
-        toast({
-          title: 'Message updated',
-          description: 'Your message has been updated successfully.',
-        });
+        toast({ title: 'Message updated', description: 'Your message has been updated successfully.' });
       } else {
-        // Create new message
         const { error } = await supabase
           .from('admin_messages')
-          .insert({
-            message: newMessage,
-            message_type: messageType,
-            user_id: selectedUserId,
-            admin_id: adminId,
-          });
+          .insert({ message: newMessage, message_type: messageType, user_id: selectedUserId, admin_id: adminId });
 
         if (error) throw error;
 
-        // Fetch user's phone number for optional SMS notification
         const { data: profileData } = await supabase
           .from('profiles')
           .select('phone_number, full_name')
@@ -127,17 +99,11 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
           .maybeSingle();
 
         if (profileData?.phone_number) {
-          await sendAdminNotificationSMS(
-            profileData.phone_number,
-            newMessage,
-            profileData.full_name
-          ).catch(err => console.error('SMS notification sending failed:', err));
+          await sendAdminNotificationSMS(profileData.phone_number, newMessage, profileData.full_name)
+            .catch(err => console.error('SMS notification sending failed:', err));
         }
 
-        toast({
-          title: 'Message sent',
-          description: 'Your message has been sent successfully.',
-        });
+        toast({ title: 'Message sent', description: 'Your message has been sent successfully.' });
       }
 
       setIsDialogOpen(false);
@@ -148,11 +114,7 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
       fetchMessages();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to send message';
-      toast({
-        title: 'Error',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     } finally {
       setIsSending(false);
     }
@@ -160,25 +122,13 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
 
   const handleDeleteMessage = async (messageId: string) => {
     try {
-      const { error } = await supabase
-        .from('admin_messages')
-        .delete()
-        .eq('id', messageId);
-
+      const { error } = await supabase.from('admin_messages').delete().eq('id', messageId);
       if (error) throw error;
-
-      toast({
-        title: 'Message deleted',
-        description: 'The message has been deleted.',
-      });
+      toast({ title: 'Message deleted', description: 'The message has been deleted.' });
       fetchMessages();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to delete message';
-      toast({
-        title: 'Error',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     }
   };
 
@@ -202,17 +152,10 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
         admin_id: adminId,
       }));
 
-      const { error } = await supabase
-        .from('admin_messages')
-        .insert(messagesToInsert);
-
+      const { error } = await supabase.from('admin_messages').insert(messagesToInsert);
       if (error) throw error;
 
-      toast({
-        title: 'Broadcast sent',
-        description: `Message sent to ${members.length} members.`,
-      });
-
+      toast({ title: 'Broadcast sent', description: `Message sent to ${members.length} members.` });
       setIsDialogOpen(false);
       setNewMessage('');
       setMessageType('info');
@@ -220,11 +163,7 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
       fetchMessages();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to broadcast message';
-      toast({
-        title: 'Error',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: message, variant: 'destructive' });
     } finally {
       setIsSending(false);
     }
@@ -232,50 +171,119 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
 
   const getMessageIcon = (type: string) => {
     switch (type) {
-      case 'warning':
-        return <AlertCircle className="w-4 h-4 text-warning" />;
-      case 'announcement':
-        return <Bell className="w-4 h-4 text-primary" />;
-      default:
-        return <Info className="w-4 h-4 text-muted-foreground" />;
+      case 'warning': return <AlertCircle className="w-5 h-5 text-white" />;
+      case 'announcement': return <Bell className="w-5 h-5 text-white" />;
+      default: return <Info className="w-5 h-5 text-white" />;
+    }
+  };
+
+  const getMessageGradient = (type: string) => {
+    switch (type) {
+      case 'warning': return 'from-amber-400 to-orange-500';
+      case 'announcement': return 'from-blue-400 to-blue-500';
+      default: return 'from-gray-400 to-gray-500';
     }
   };
 
   return (
-    <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <MessageSquare className="w-4 h-4 text-primary" />
-          </div>
-          <h3 className="font-semibold text-foreground">Message Center</h3>
+    <>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-600">Messages</h3>
+        <button 
+          onClick={() => setIsDialogOpen(true)}
+          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full text-xs font-semibold text-white hover:from-blue-600 hover:to-blue-700 transition active:scale-95 flex items-center gap-1 shadow-lg shadow-blue-500/30"
+        >
+          <Plus className="w-3 h-3" /> New Message
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-gray-100 rounded-2xl p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded-full w-3/4 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded-full w-1/2 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) {
-            setEditingMessage(null);
-            setNewMessage('');
-            setSelectedUserId('');
-          }
-        }}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="rounded-xl">
-              <Plus className="w-4 h-4 mr-1" />
-              New
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md rounded-2xl">
-            <DialogHeader>
-              <DialogTitle>{editingMessage ? 'Edit Message' : 'Send Message'}</DialogTitle>
-              <DialogDescription>
-                {editingMessage ? 'Update your message' : 'Send a message to a member or broadcast to all'}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
+      ) : messages.length === 0 ? (
+        <div className="text-center py-12">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No messages yet</h3>
+          <p className="text-gray-500 max-w-sm mx-auto leading-relaxed">
+            Send your first message to members. They'll receive notifications in their dashboard.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {messages.slice(0, 10).map((message) => (
+            <div key={message.id} className="bg-gray-100 rounded-2xl p-4">
+              <div className="flex items-start gap-4">
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getMessageGradient(message.message_type)} flex items-center justify-center flex-shrink-0`}>
+                  {getMessageIcon(message.message_type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-semibold text-gray-900">{message.recipient_name}</p>
+                    {!message.is_read && (
+                      <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full font-medium">New</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 line-clamp-2">{message.message}</p>
+                  <p className="text-xs text-gray-400 mt-1">{format(parseISO(message.created_at), 'MMM d, HH:mm')}</p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <button 
+                    onClick={() => handleEditMessage(message)}
+                    className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm hover:bg-gray-50 transition active:scale-95"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-gray-600" />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteMessage(message.id)}
+                    className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm hover:bg-red-50 transition active:scale-95"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* New/Edit Message Modal */}
+      {isDialogOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-bold text-xl text-gray-900">
+                {editingMessage ? 'Edit Message' : 'New Message'}
+              </h3>
+              <button 
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  setEditingMessage(null);
+                  setNewMessage('');
+                  setSelectedUserId('');
+                }}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition"
+              >
+                <X className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+            
+            <div className="space-y-4 mb-6">
               <div className="space-y-2">
-                <Label htmlFor="recipient">Recipient</Label>
+                <Label htmlFor="recipient" className="text-sm font-medium text-gray-700">Recipient</Label>
                 <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="rounded-xl border-gray-200">
                     <SelectValue placeholder="Select member" />
                   </SelectTrigger>
                   <SelectContent>
@@ -288,9 +296,9 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="type">Message Type</Label>
+                <Label htmlFor="type" className="text-sm font-medium text-gray-700">Message Type</Label>
                 <Select value={messageType} onValueChange={(v) => setMessageType(v as any)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="rounded-xl border-gray-200">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -301,87 +309,40 @@ export default function MessageCenter({ adminId, members }: MessageCenterProps) 
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
+                <Label htmlFor="message" className="text-sm font-medium text-gray-700">Message</Label>
                 <Textarea
                   id="message"
                   placeholder="Type your message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   rows={4}
+                  className="rounded-xl border-gray-200 resize-none"
                 />
               </div>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleSendMessage} 
-                  disabled={isSending || !newMessage.trim() || !selectedUserId} 
-                  className="flex-1"
+            </div>
+            
+            <div className="space-y-3">
+              <button 
+                onClick={handleSendMessage}
+                disabled={isSending || !newMessage.trim() || !selectedUserId}
+                className="w-full py-4 px-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full font-semibold text-white hover:from-blue-600 hover:to-blue-700 transition shadow-lg shadow-blue-500/30 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                {isSending ? 'Sending...' : (editingMessage ? 'Update' : 'Send')}
+              </button>
+              {!editingMessage && (
+                <button 
+                  onClick={handleBroadcast}
+                  disabled={isSending || !newMessage.trim()}
+                  className="w-full py-4 px-6 bg-gray-100 rounded-full font-semibold text-gray-900 hover:bg-gray-200 transition active:scale-95 disabled:opacity-50"
                 >
-                  <Send className="w-4 h-4 mr-2" />
-                  {isSending ? 'Sending...' : (editingMessage ? 'Update' : 'Send')}
-                </Button>
-                {!editingMessage && (
-                  <Button 
-                    variant="outline"
-                    onClick={handleBroadcast} 
-                    disabled={isSending || !newMessage.trim()} 
-                  >
-                    Broadcast All
-                  </Button>
-                )}
-              </div>
+                  Broadcast to All ({members.length})
+                </button>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {isLoading ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Loading messages...</p>
-        </div>
-      ) : messages.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-            <MessageSquare className="w-8 h-8 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground text-sm">No messages yet</p>
-          <p className="text-muted-foreground text-xs mt-1">Send your first message to members</p>
-        </div>
-      ) : (
-        <div className="space-y-2 max-h-80 overflow-y-auto">
-          {messages.slice(0, 8).map((message) => (
-            <div 
-              key={message.id} 
-              className={`flex items-start gap-3 p-4 rounded-xl transition-colors ${
-                message.is_read ? 'bg-muted/30' : 'bg-primary/5 border border-primary/20'
-              }`}
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                message.message_type === 'warning' ? 'bg-warning/10' : 'bg-primary/10'
-              }`}>
-                {getMessageIcon(message.message_type)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-sm text-foreground">{message.recipient_name}</span>
-                  {!message.is_read && (
-                    <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">New</span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground break-words line-clamp-2">{message.message}</p>
-                <p className="text-xs text-muted-foreground mt-1">{format(parseISO(message.created_at), 'MMM d, HH:mm')}</p>
-              </div>
-              <div className="flex flex-col gap-1">
-                <Button variant="ghost" size="icon" onClick={() => handleEditMessage(message)} className="h-7 w-7 rounded-full">
-                  <Edit2 className="w-3.5 h-3.5" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDeleteMessage(message.id)} className="h-7 w-7 rounded-full text-destructive">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            </div>
-          ))}
         </div>
       )}
-    </div>
+    </>
   );
 }
