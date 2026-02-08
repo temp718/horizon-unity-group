@@ -8,7 +8,6 @@ import Index from "./pages/Index";
 import UserLogin from "./pages/UserLogin";
 import UserRegister from "./pages/UserRegister";
 import UserDashboard from "./pages/UserDashboard";
-import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -27,7 +26,7 @@ function ProtectedRoute({ element, requireAdmin = false }: { element: React.Reac
   }
 
   if (!user) {
-    return <Navigate to={requireAdmin ? "/admin/login" : "/login"} replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (requireAdmin && !isAdmin) {
@@ -66,7 +65,7 @@ const AppRoutes = () => (
     <Route path="/login" element={<UserLogin />} />
     <Route path="/register" element={<UserRegister />} />
     <Route path="/dashboard" element={<ProtectedRoute element={<UserDashboard />} />} />
-    <Route path="/admin/login" element={<AdminLogin />} />
+    <Route path="/admin/login" element={<Navigate to="/login" replace />} />
     <Route path="/admin/dashboard" element={<ProtectedRoute element={<AdminDashboard />} requireAdmin={true} />} />
     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
     <Route path="*" element={<NotFound />} />
