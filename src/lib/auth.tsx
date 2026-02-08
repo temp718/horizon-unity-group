@@ -173,8 +173,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Get initial session first
     const getInitialSession = async () => {
       try {
-        // Check for existing session in storage
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        // Add timeout to prevent infinite loading
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session recovery timeout')), 5000)
+        );
+
+        const { data: { session: initialSession }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as Awaited<ReturnType<typeof supabase.auth.getSession>>;
         
         if (error) {
           console.error('Error getting session:', error);
@@ -191,6 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
           setSession(null);
           setIsAdmin(false);
+          setIsLoading(false);
         }
       } finally {
         if (mounted) setIsLoading(false);

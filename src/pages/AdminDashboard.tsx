@@ -148,7 +148,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Main Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ scrollBehavior: 'smooth' }}>
           {/* Balance Card */}
           <div className="px-4 pt-6 pb-4">
             <div className="bg-gray-100 rounded-3xl p-6">
@@ -296,17 +296,14 @@ export default function AdminDashboard() {
               <MessageCenter adminId={user!.id} members={members.map(m => ({ user_id: m.user_id, full_name: m.full_name }))} />
             </div>
           )}
-        </div>
 
-        {/* Bottom Navigation */}
-        <div className="bg-white border-t border-gray-200">
-          <div className="px-4 py-3">
+          {/* Bottom Navigation - Inside scrollable */}
+          <div className="bg-white border-t border-gray-200 px-4 py-4 mb-2">
             <p className="text-center text-sm text-gray-600 mb-3">
-              Manage <span className="font-semibold">{members.length} members</span> and{' '}
-              <span className="font-semibold">KES {totalGroupSavings.toLocaleString()}</span> in savings.
+              <span className="font-semibold">{members.length} members</span> • <span className="font-semibold">KES {totalGroupSavings.toLocaleString()}</span>
             </p>
             
-            <div className="grid grid-cols-3 gap-2 pb-2">
+            <div className="grid grid-cols-3 gap-2">
               <button 
                 onClick={() => setActiveTab('overview')}
                 className={`py-3 px-4 rounded-full text-sm font-semibold transition active:scale-95 ${
