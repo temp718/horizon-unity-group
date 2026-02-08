@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import UserLogin from "./pages/UserLogin";
 import UserRegister from "./pages/UserRegister";
@@ -40,11 +41,20 @@ function ProtectedRoute({ element, requireAdmin = false }: { element: React.Reac
   return element;
 }
 
-// Home page wrapper - redirects if already logged in
+// Home page wrapper - redirects if already logged in, prevents Index flash
 function HomePage() {
   const { user, isAdmin, isLoading } = useAuth();
+  const navigate = useNavigate();
 
-  if (isLoading) {
+  // Redirect logged-in users silently without showing Index
+  useEffect(() => {
+    if (!isLoading && user) {
+      navigate(isAdmin ? "/admin/dashboard" : "/dashboard", { replace: true });
+    }
+  }, [user, isAdmin, isLoading, navigate]);
+
+  // Show loading while auth is being checked OR while redirecting
+  if (isLoading || user) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-pulse text-gray-400">Loading...</div>
@@ -52,10 +62,7 @@ function HomePage() {
     );
   }
 
-  if (user) {
-    return <Navigate to={isAdmin ? "/admin/dashboard" : "/dashboard"} replace />;
-  }
-
+  // Only show index page if truly logged out
   return <Index />;
 }
 
