@@ -504,9 +504,8 @@ export default function UserDashboard() {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Bottom Navigation */}
+        {/* Bottom Navigation - Inside scrollable container */}
         <div className="bg-white border-t border-gray-200">
           <div className="px-4 py-3">
             <p className="text-center text-sm text-gray-600 mb-3">
@@ -539,6 +538,7 @@ export default function UserDashboard() {
               </button>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
